@@ -26,40 +26,41 @@ uploaded_files = st.file_uploader("Bilder der Baustelle auswaehlen", type=["png"
 foto_daten = []
 
 if uploaded_files:
-    # Formular, um alle Eingaben auf einmal zu sammeln
     with st.form("eingabe_formular"):
         for idx, file in enumerate(uploaded_files):
-            cols = st.columns([1, 2])
-            with cols[0]:
-                st.image(file, width=200, caption=f"Bild {idx+1}")
-            with cols[1]:
-                msg = st.text_area(f"Beschreibung fuer Bild {idx+1}", key=f"text_{idx}", placeholder="z.B. Riss in der Bodenplatte...")
+            # Nutzt Container für sauberes Layout und Abstand in der App-UI
+            with st.container():
+                st.markdown("---") # Visuelle Trennlinie in der App
+                cols = st.columns([1, 2]) # Bild links, Text/Wetter rechts
                 
-                # Checkboxen und Textfeld für Wetter/Temperatur
-                st.markdown("**Wetterbedingungen:**")
-                wetter_cols = st.columns(4)
-                sonnig = wetter_cols[0].checkbox("Sonnig", key=f"sun_{idx}")
-                bewoelkt = wetter_cols[1].checkbox("Bewoelkt", key=f"cloud_{idx}")
-                regen = wetter_cols[2].checkbox("Regen", key=f"rain_{idx}")
-                temperatur = wetter_cols[3].text_input("Temp. (°C)", key=f"temp_{idx}", value="")
+                with cols[0]:
+                    st.image(file, width=200, caption=f"Bild {idx+1}")
+                
+                with cols[1]:
+                    msg = st.text_area(f"Beschreibung fuer Bild {idx+1}", key=f"text_{idx}", placeholder="Beschreibung hier eingeben...", height=100)
+                    
+                    st.markdown("**Wetterbedingungen:**")
+                    wetter_cols = st.columns(4)
+                    sonnig = wetter_cols[0].checkbox("Sonnig", key=f"sun_{idx}")
+                    bewoelkt = wetter_cols[1].checkbox("Bewoelkt", key=f"cloud_{idx}")
+                    regen = wetter_cols[2].checkbox("Regen", key=f"rain_{idx}")
+                    temperatur = wetter_cols[3].text_input("Temp. (°C)", key=f"temp_{idx}", value="")
 
-                wetter_info = []
-                if sonnig: wetter_info.append("Sonnig")
-                if bewoelkt: wetter_info.append("Bewoelkt")
-                if regen: wetter_info.append("Regen")
-                if temperatur: wetter_info.append(f"{temperatur}°C")
-                
-                foto_daten.append({
-                    'file': file,
-                    'beschreibung': msg,
-                    'wetter': ", ".join(wetter_info)
-                })
+                    wetter_info = []
+                    if sonnig: wetter_info.append("Sonnig")
+                    if bewoelkt: wetter_info.append("Bewoelkt")
+                    if regen: wetter_info.append("Regen")
+                    if temperatur: wetter_info.append(f"{temperatur}°C")
+                    
+                    foto_daten.append({
+                        'file': file,
+                        'beschreibung': msg,
+                        'wetter': ", ".join(wetter_info)
+                    })
         
-        # Submit Button fuer das Formular
         submit_button = st.form_submit_button(label="📄 PDF Bericht generieren")
 
 else:
-    # Dummy Submit button, falls keine Dateien hochgeladen wurden
     submit_button = st.button("📄 PDF Bericht generieren")
 
 # --- PDF ERSTELLUNG (Wird nur beim Klick auf Submit Button ausgefuehrt) ---
@@ -73,7 +74,7 @@ if submit_button:
         pdf_width = pdf.w - 2 * pdf.l_margin
         img_width = 80
         text_width = pdf_width - img_width - 5
-        row_height = 95 # Etwas hoeher fuer mehr Platz (vorher 90)
+        row_height = 105 # Noch mehr Hoehe für Abstand (vorher 95)
 
         pdf.add_page()
         
@@ -100,7 +101,6 @@ if submit_button:
                 pdf.add_page()
                 pdf.ln(10)
 
-            # 1. Bild vorbereiten (Rotation & Skalierung wie zuvor)
             img_data = Image.open(file)
             try:
                 for orientation in ExifTags.TAGS.keys():
@@ -114,25 +114,22 @@ if submit_button:
             img_path = f"temp_clean_{file.name}"
             img_data.save(img_path)
 
-            # 2. Positionieren von Bild (links) und Text (rechts)
             start_y = pdf.get_y()
             pdf.image(img_path, x=pdf.l_margin, y=start_y, w=img_width)
             
             pdf.set_xy(pdf.l_margin + img_width + 5, start_y)
             pdf.set_font("Arial", 'B', 11)
-            pdf.multi_cell(text_width, 8, f"Bild {i+1}:", align='L') # Bezeichnung angepasst
+            pdf.multi_cell(text_width, 8, f"Bild {i+1}:", align='L') # Bezeichnung angepasst, "Befund" weg
             
             pdf.set_font("Arial", '', 10)
-            pdf.set_xy(pdf.l_margin + img_width + 5, start_y + 10)
+            pdf.set_xy(pdf.l_margin + img_width + 5, start_y + 8) # Y-Position angepasst
             
-            # Text inkl. Wetterinformationen
-            beschreibung_text = f"Befund: {data['beschreibung']}\nWetter: {data['wetter']}"
+            beschreibung_text = f"Beschreibung: {data['beschreibung']}\nWetter: {data['wetter']}"
             
             # Hier zeichnen wir den Rahmen um den Text
-            pdf.rect(pdf.get_x(), pdf.get_y(), text_width, 50) 
+            pdf.rect(pdf.get_x(), pdf.get_y(), text_width, 55) # Rahmenhoehe angepasst
             pdf.multi_cell(text_width, 6, beschreibung_text, align='L')
 
-            # 3. Zum Ende der Zeile springen für das nächste Element
             pdf.set_y(start_y + row_height + 5)
 
         # --- FUSSZEILE MIT UNTERSCHRIFT ---
