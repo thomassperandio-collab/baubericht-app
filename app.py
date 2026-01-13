@@ -12,7 +12,7 @@ st.write("Erstelle professionelle Fotodokumentationen direkt im Browser.")
 
 # --- SEITENLEISTE: EINSTELLUNGEN ---
 st.sidebar.header("Bericht-Details")
-projekt = st.sidebar.text_input("Bauvorhaben", "Neubau Musterstraße")
+projekt = st.sidebar.text_input("Bauvorhaben", "Neubau Musterstrasse") # Umlaute entfernt
 pruefer = st.sidebar.text_input("Erstellt von", "Max Mustermann")
 firma = st.sidebar.text_input("Firma", "Bau GmbH")
 datum_heute = datetime.now().strftime("%d.%m.%Y")
@@ -29,7 +29,7 @@ if uploaded_files:
     for idx, file in enumerate(uploaded_files):
         with cols[idx % 2]:
             st.image(file, width=300)
-            msg = st.text_area(f"Beschreibung für Bild: {file.name}", key=f"text_{idx}", placeholder="z.B. Riss in der Bodenplatte...")
+            msg = st.text_area(f"Beschreibung fuer Bild: {file.name}", key=f"text_{idx}", placeholder="z.B. Riss in der Bodenplatte...") # Umlaute entfernt
             beschreibungen[file.name] = msg
 
 # --- PDF ERSTELLUNG ---
@@ -40,18 +40,17 @@ if st.button("📄 PDF Bericht generieren"):
         pdf = FPDF()
         pdf.set_auto_page_break(auto=True, margin=15)
         
-        # Einstellungen für das Layout
         pdf_width = pdf.w - 2 * pdf.l_margin
         img_width = 80
-        text_width = pdf_width - img_width - 5 # 5mm Abstand
-        row_height = 90 # Höhe einer Zeile im Dokument
+        text_width = pdf_width - img_width - 5
+        row_height = 90
 
         pdf.add_page()
         
-        # --- KOPFZEILE (Einmalig pro Dokument) ---
+        # --- KOPFZEILE ---
         if logo_file:
             img_logo = Image.open(logo_file)
-            img_logo_path = "temp_logo.png"
+            img_logo_path = "temp_logo_clean.png" # Sicherer Dateiname
             img_logo.save(img_logo_path)
             pdf.image(img_logo_path, x=160, y=10, w=30)
         
@@ -61,18 +60,18 @@ if st.button("📄 PDF Bericht generieren"):
         pdf.cell(0, 15, f"Baustellenbericht: {projekt}", ln=True)
         pdf.set_font("Arial", '', 10)
         pdf.cell(0, 8, f"Datum: {datum_heute} | Ersteller: {pruefer}", ln=True)
-        pdf.ln(10) # Abstand nach Header
+        pdf.ln(10)
 
         # --- BILDER UND TEXT IM LOOP ---
         for i, file in enumerate(uploaded_files):
             
-            # Prüfen ob neue Seite benötigt wird
             if pdf.get_y() + row_height > pdf.h - pdf.b_margin:
                 pdf.add_page()
-                pdf.ln(10) # Kleiner Abstand auf neuer Seite
+                pdf.ln(10)
 
-            # 1. Bild vorbereiten (Rotation & Skalierung wie zuvor)
             img_data = Image.open(file)
+            
+            # Automatische Rotation basierend auf EXIF-Daten
             try:
                 for orientation in ExifTags.TAGS.keys():
                     if ExifTags.TAGS[orientation]=='Orientation': break
@@ -80,28 +79,27 @@ if st.button("📄 PDF Bericht generieren"):
                 if exif[orientation] == 3: img_data=img_data.rotate(180, expand=True)
                 elif exif[orientation] == 6: img_data=img_data.rotate(270, expand=True)
                 elif exif[orientation] == 8: img_data=img_data.rotate(90, expand=True)
-            except (AttributeError, KeyError, IndexError):
+            except (AttributeError, KeyError, IndexError, TypeError): # TypeError hinzugefügt
                 pass
-            img_path = f"temp_{file.name}"
-            img_data.save(img_path)
 
-            # 2. Positionieren von Bild (links) und Text (rechts)
+            img_path = f"temp_clean_{file.name}" # Sicherer Dateiname
+            img_data.save(img_path)
+            
             start_y = pdf.get_y()
             pdf.image(img_path, x=pdf.l_margin, y=start_y, w=img_width)
             
             pdf.set_xy(pdf.l_margin + img_width + 5, start_y)
             pdf.set_font("Arial", 'B', 11)
-            pdf.multi_cell(text_width, 8, f"Mangel/Befund ({file.name}):", align='L')
+            pdf.multi_cell(text_width, 8, f"Befund:", align='L') # Umlaute entfernt
             
             pdf.set_font("Arial", '', 10)
             pdf.set_xy(pdf.l_margin + img_width + 5, start_y + 10)
             pdf.multi_cell(text_width, 6, beschreibungen[file.name], align='L')
 
-            # 3. Zum Ende der Zeile springen für das nächste Element
-            pdf.set_y(start_y + row_height + 5) # 5mm Abstand zur nächsten Zeile
+            pdf.set_y(start_y + row_height + 5)
 
-        # --- FUSSZEILE MIT UNTERSCHRIFT (am Ende des Dokuments) ---
-        pdf.set_y(pdf.h - 30) # 3 cm von unten
+        # --- FUSSZEILE MIT UNTERSCHRIFT ---
+        pdf.set_y(pdf.h - 30)
         pdf.line(10, pdf.get_y(), 80, pdf.get_y())
         pdf.cell(0, 10, "Unterschrift Bauleitung", ln=False)
 
