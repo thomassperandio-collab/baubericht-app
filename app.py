@@ -12,7 +12,7 @@ st.write("Erstelle professionelle Fotodokumentationen direkt im Browser.")
 
 # --- SEITENLEISTE: EINSTELLUNGEN ---
 st.sidebar.header("Bericht-Details")
-projekt = st.sidebar.text_input("Bauvorhaben", "Neubau Musterstrasse") # Umlaute entfernt
+projekt = st.sidebar.text_input("Bauvorhaben", "Neubau Musterstrasse")
 pruefer = st.sidebar.text_input("Erstellt von", "Max Mustermann")
 firma = st.sidebar.text_input("Firma", "Bau GmbH")
 datum_heute = datetime.now().strftime("%d.%m.%Y")
@@ -20,7 +20,7 @@ logo_file = st.sidebar.file_uploader("Firmenlogo hochladen", type=["png", "jpg",
 
 # --- HAUPTBEREICH: FOTOS ---
 st.header("1. Fotos & Beschreibungen")
-uploaded_files = st.file_uploader("Bilder der Baustelle auswählen", type=["png", "jpg", "jpeg"], accept_multiple_files=True)
+uploaded_files = st.file_uploader("Bilder der Baustelle auswaehlen", type=["png", "jpg", "jpeg"], accept_multiple_files=True)
 
 beschreibungen = {}
 
@@ -29,7 +29,7 @@ if uploaded_files:
     for idx, file in enumerate(uploaded_files):
         with cols[idx % 2]:
             st.image(file, width=300)
-            msg = st.text_area(f"Beschreibung fuer Bild: {file.name}", key=f"text_{idx}", placeholder="z.B. Riss in der Bodenplatte...") # Umlaute entfernt
+            msg = st.text_area(f"Beschreibung fuer Bild: {file.name}", key=f"text_{idx}", placeholder="z.B. Riss in der Bodenplatte...")
             beschreibungen[file.name] = msg
 
 # --- PDF ERSTELLUNG ---
@@ -50,7 +50,7 @@ if st.button("📄 PDF Bericht generieren"):
         # --- KOPFZEILE ---
         if logo_file:
             img_logo = Image.open(logo_file)
-            img_logo_path = "temp_logo_clean.png" # Sicherer Dateiname
+            img_logo_path = "temp_logo_clean.png"
             img_logo.save(img_logo_path)
             pdf.image(img_logo_path, x=160, y=10, w=30)
         
@@ -79,10 +79,10 @@ if st.button("📄 PDF Bericht generieren"):
                 if exif[orientation] == 3: img_data=img_data.rotate(180, expand=True)
                 elif exif[orientation] == 6: img_data=img_data.rotate(270, expand=True)
                 elif exif[orientation] == 8: img_data=img_data.rotate(90, expand=True)
-            except (AttributeError, KeyError, IndexError, TypeError): # TypeError hinzugefügt
+            except (AttributeError, KeyError, IndexError, TypeError):
                 pass
 
-            img_path = f"temp_clean_{file.name}" # Sicherer Dateiname
+            img_path = f"temp_clean_{file.name}"
             img_data.save(img_path)
             
             start_y = pdf.get_y()
@@ -90,7 +90,7 @@ if st.button("📄 PDF Bericht generieren"):
             
             pdf.set_xy(pdf.l_margin + img_width + 5, start_y)
             pdf.set_font("Arial", 'B', 11)
-            pdf.multi_cell(text_width, 8, f"Befund:", align='L') # Umlaute entfernt
+            pdf.multi_cell(text_width, 8, f"Befund:", align='L')
             
             pdf.set_font("Arial", '', 10)
             pdf.set_xy(pdf.l_margin + img_width + 5, start_y + 10)
@@ -103,12 +103,11 @@ if st.button("📄 PDF Bericht generieren"):
         pdf.line(10, pdf.get_y(), 80, pdf.get_y())
         pdf.cell(0, 10, "Unterschrift Bauleitung", ln=False)
 
-        # PDF zum Download anbieten
-        pdf_buffer = io.BytesIO()
-        pdf.output(dest=pdf_buffer) 
+        # PDF zum Download anbieten (NEU & KORRIGIERT)
+        binary_pdf = pdf.output() 
         st.download_button(
             label="💾 PDF herunterladen",
-            data=pdf_buffer.getvalue(),
+            data=binary_pdf,
             file_name=f"Bericht_{projekt}_{datum_heute}.pdf",
             mime="application/pdf"
         )
