@@ -77,7 +77,7 @@ if st.button("📄 PDF Bericht generieren"):
             pdf.cell(0, 10, "Unterschrift Bauleitung", ln=False)
 
         # PDF zum Download anbieten
-        pdf_output = pdf.output(dest='S').encode('latin-1', 'replace')
+       pdf_output = pdf.output() 
         st.download_button(
             label="💾 PDF herunterladen",
             data=pdf_output,
