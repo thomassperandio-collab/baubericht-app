@@ -103,11 +103,11 @@ if st.button("📄 PDF Bericht generieren"):
         pdf.line(10, pdf.get_y(), 80, pdf.get_y())
         pdf.cell(0, 10, "Unterschrift Bauleitung", ln=False)
 
-        # PDF zum Download anbieten (NEU & KORRIGIERT)
+        # PDF zum Download anbieten (Finale Korrektur)
         binary_pdf = pdf.output() 
         st.download_button(
             label="💾 PDF herunterladen",
-            data=binary_pdf,
+            data=bytes(binary_pdf), # Explizit als bytes() konvertieren
             file_name=f"Bericht_{projekt}_{datum_heute}.pdf",
             mime="application/pdf"
         )
