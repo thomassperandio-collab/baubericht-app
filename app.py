@@ -82,7 +82,7 @@ if st.button("📄 PDF Bericht generieren"):
         pdf.output(dest=pdf_buffer)
         st.download_button(
             label="💾 PDF herunterladen",
-            data=pdf_output,getvalue()
+            data=pdf_output.getvalue(),
             file_name=f"Bericht_{projekt}_{datum_heute}.pdf",
             mime="application/pdf"
         )
