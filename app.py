@@ -10,7 +10,7 @@ st.set_page_config(page_title="BauBericht Pro 2026", layout="wide")
 st.title("🏗️ BauBericht Pro 2026")
 st.write("Erstelle professionelle Fotodokumentationen direkt im Browser.")
 
-# --- Globale Wettervariablen ---
+# --- Globale Wettervariablen (Korrekt positioniert) ---
 st.header("Allgemeine Wetter- und Baustellenbedingungen")
 wetter_cols = st.columns(3) 
 sonnig = wetter_cols.checkbox("Sonnig")
@@ -42,19 +42,16 @@ uploaded_files = st.file_uploader("Bilder der Baustelle auswaehlen", type=["png"
 foto_daten = []
 
 if uploaded_files:
-    # --- FORMULAR START ---
     with st.form("eingabe_formular"):
         for idx, file in enumerate(uploaded_files):
             with st.container():
                 st.markdown("---")
+                cols = st.columns(2) # Explizite Spaltenzahl
                 
-                # KORREKTUR: Explizite Spaltenbreiten 
-                cols = st.columns([1, 2]) # Eine Spalte 1 Teil breit, die andere 2 Teile
-                
-                with cols[0]: # Zugriff ueber Index
+                with cols[0]:
                     st.image(file, width=200, caption=f"Bild {idx+1}")
                 
-                with cols[1]: # Zugriff ueber Index
+                with cols[1]:
                     msg = st.text_area(f"Beschreibung fuer Bild {idx+1}", key=f"text_{idx}", placeholder="Beschreibung hier eingeben...", height=100)
                     
                     foto_daten.append({
@@ -62,17 +59,12 @@ if uploaded_files:
                         'beschreibung': msg,
                     })
         
-        # KORREKTUR: Submit Button MUSS innerhalb des 'with st.form(...):' Blocks sein
         submit_button = st.form_submit_button(label="📄 PDF Bericht generieren")
-    # --- FORMULAR ENDE ---
 
 else:
-    # Dies ist ein Dummy-Button, falls KEINE Dateien hochgeladen sind
     submit_button = st.button("Lade Bilder hoch, um Bericht zu generieren")
 
-
-# --- PDF ERSTELLUNG (Wird nur beim Klick auf Submit Button ausgefuehrt) ---
-# Der restliche PDF-Code bleibt gleich, da er nur beim Klick auf submit_button laeuft
+# --- PDF ERSTELLUNG ---
 if submit_button and uploaded_files:
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
