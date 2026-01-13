@@ -1,4 +1,5 @@
 import streamlit as st
+import io 
 from fpdf import FPDF
 from datetime import datetime
 from PIL import Image
@@ -77,7 +78,8 @@ if st.button("📄 PDF Bericht generieren"):
             pdf.cell(0, 10, "Unterschrift Bauleitung", ln=False)
 
         # PDF zum Download anbieten
-        pdf_output = pdf.output() 
+        pdf_buffer = io.BytesIO()
+        pdf.output(dest=pdf_buffer)
         st.download_button(
             label="💾 PDF herunterladen",
             data=pdf_output,
